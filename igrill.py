@@ -123,13 +123,13 @@ class IDevicePeripheral(btle.Peripheral):
                 temps[probe_num] = float(temp) if float(temp) != 63536.0 else False
 
             return temps
-        except bluepy.btle.BTLEDisconnectError:
+        except btle.BTLEDisconnectError:
             while True:
                 try:
                     logging.debug("Disconnected from iGrill, trying to reconnect...")
                     device = self.__init__(self.address)
                     return self.read_temperature(self)
-                except bluepy.btle.BTLEDisconnectError:
+                except btle.BTLEDisconnectError:
                     logging.debug("Failed to reconnect -- trying again...")
                     continue
 
