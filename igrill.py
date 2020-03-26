@@ -161,13 +161,13 @@ class MyIgrill(IGrillV2Peripheral):
 
     def read_temperature(self, *args, **kwargs):
         try:
-            return super(myIgrill, self).read_temperature(*args, **kwargs)
+            return super(MyIgrill, self).read_temperature(*args, **kwargs)
         except bluepy.btle.BTLEDisconnectError:
             while True:
                 try:
                     print("Disconnected from iGrill, trying to reconnect...")
                     device = self.__init__(self.address)
-                    return super(myIgrill, self).read_temperature(*args, **kwargs)
+                    return super(MyIgrill, self).read_temperature(*args, **kwargs)
                 except bluepy.btle.BTLEDisconnectError:
                     print("Failed to reconnect -- trying again...")
                     continue
