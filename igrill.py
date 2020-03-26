@@ -115,13 +115,23 @@ class IDevicePeripheral(btle.Peripheral):
 
     def read_temperature(self):
         temps = {1: False, 2: False, 3: False, 4: False}
+        try:
 
-        for probe_num, temp_char in list(self.temp_chars.items()):
-            temp = bytearray(temp_char.read())[1] * 256
-            temp += bytearray(temp_char.read())[0]
-            temps[probe_num] = float(temp) if float(temp) != 63536.0 else False
+            for probe_num, temp_char in list(self.temp_chars.items()):
+                temp = bytearray(temp_char.read())[1] * 256
+                temp += bytearray(temp_char.read())[0]
+                temps[probe_num] = float(temp) if float(temp) != 63536.0 else False
 
-        return temps
+            return temps
+        except bluepy.btle.BTLEDisconnectError:
+            while True:
+                try:
+                    print("Disconnected from iGrill, trying to reconnect...")
+                    device = self.__init__(self.address)
+                    return self.read_temperature(self)
+                except bluepy.btle.BTLEDisconnectError:
+                    print("Failed to reconnect -- trying again...")
+                    continue
 
 
 class IGrillMiniPeripheral(IDevicePeripheral):
@@ -154,30 +164,10 @@ class IGrillV3Peripheral(IDevicePeripheral):
         IDevicePeripheral.__init__(self, address, name, num_probes)
 
 
-class MyIgrill(IGrillV2Peripheral):
-    def __init__(self, *args, **kwargs):
-        self.address = args[0]
-        super(MyIgrill, self).__init__(*args, **kwargs)
-
-    def read_temperature(self, *args, **kwargs):
-        try:
-            return super(MyIgrill, self).read_temperature(*args, **kwargs)
-        except bluepy.btle.BTLEDisconnectError:
-            while True:
-                try:
-                    print("Disconnected from iGrill, trying to reconnect...")
-                    device = self.__init__(self.address)
-                    return super(MyIgrill, self).read_temperature(*args, **kwargs)
-                except bluepy.btle.BTLEDisconnectError:
-                    print("Failed to reconnect -- trying again...")
-                    continue
-
-
 class DeviceThread(threading.Thread):
     device_types = {'igrill_mini': IGrillMiniPeripheral,
                     'igrill_v2': IGrillV2Peripheral,
-                    'igrill_v3': IGrillV3Peripheral,
-                    'myigrill': MyIgrill}
+                    'igrill_v3': IGrillV3Peripheral}
 
     def __init__(self, thread_id, name, address, igrill_type, mqtt_config, topic, interval, run_event):
         threading.Thread.__init__(self)
