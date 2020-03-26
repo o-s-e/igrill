@@ -2,6 +2,7 @@ from builtins import range
 from config import strip_config
 from igrill import IGrillMiniPeripheral, IGrillV2Peripheral, IGrillV3Peripheral, DeviceThread
 import logging
+import time
 import paho.mqtt.client as mqtt
 
 config_requirements = {
@@ -100,9 +101,15 @@ def mqtt_init(mqtt_config):
 def publish(temperatures, battery, client, base_topic, device_name):
     for i in range(1, 5):
         if temperatures[i]:
+            """
             client.publish("{0}/{1}/probe{2}".format(base_topic, device_name, i), temperatures[i])
+            """
+            client.publish("{0}".format(base_topic),
+                           "{0},probe={1} temperature={2} {3}".format(device_name, i, temperatures[i], time.time_ns()))
 
     client.publish("{0}/{1}/battery".format(base_topic, device_name), battery)
+
+
 
 
 def get_devices(device_config):
@@ -122,6 +129,6 @@ def get_device_threads(device_config, mqtt_config, run_event):
         logging.warn('No devices in config')
         return {}
 
-    return [DeviceThread(ind, d['name'], d['address'], d['type'], mqtt_config, d['topic'], d['interval'], run_event) for ind, d in
+    return [DeviceThread(ind, d['name'], d['address'], d['type'], mqtt_config, d['topic'], d['interval'], run_event) for
+            ind, d in
             enumerate(device_config)]
-
