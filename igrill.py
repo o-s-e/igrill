@@ -9,24 +9,25 @@ import random
 
 import utils
 
+
 class UUIDS(object):
-    FIRMWARE_VERSION   = btle.UUID('64ac0001-4a4b-4b58-9f37-94d3c52ffdf7')
+    FIRMWARE_VERSION = btle.UUID('64ac0001-4a4b-4b58-9f37-94d3c52ffdf7')
 
-    BATTERY_LEVEL      = btle.UUID('00002A19-0000-1000-8000-00805F9B34FB')
+    BATTERY_LEVEL = btle.UUID('00002A19-0000-1000-8000-00805F9B34FB')
 
-    APP_CHALLENGE      = btle.UUID('64AC0002-4A4B-4B58-9F37-94D3C52FFDF7')
-    DEVICE_CHALLENGE   = btle.UUID('64AC0003-4A4B-4B58-9F37-94D3C52FFDF7')
-    DEVICE_RESPONSE    = btle.UUID('64AC0004-4A4B-4B58-9F37-94D3C52FFDF7')
+    APP_CHALLENGE = btle.UUID('64AC0002-4A4B-4B58-9F37-94D3C52FFDF7')
+    DEVICE_CHALLENGE = btle.UUID('64AC0003-4A4B-4B58-9F37-94D3C52FFDF7')
+    DEVICE_RESPONSE = btle.UUID('64AC0004-4A4B-4B58-9F37-94D3C52FFDF7')
 
-    CONFIG             = btle.UUID('06ef0002-2e06-4b79-9e33-fce2c42805ec')
+    CONFIG = btle.UUID('06ef0002-2e06-4b79-9e33-fce2c42805ec')
     PROBE1_TEMPERATURE = btle.UUID('06ef0002-2e06-4b79-9e33-fce2c42805ec')
-    PROBE1_THRESHOLD   = btle.UUID('06ef0003-2e06-4b79-9e33-fce2c42805ec')
+    PROBE1_THRESHOLD = btle.UUID('06ef0003-2e06-4b79-9e33-fce2c42805ec')
     PROBE2_TEMPERATURE = btle.UUID('06ef0004-2e06-4b79-9e33-fce2c42805ec')
-    PROBE2_THRESHOLD   = btle.UUID('06ef0005-2e06-4b79-9e33-fce2c42805ec')
+    PROBE2_THRESHOLD = btle.UUID('06ef0005-2e06-4b79-9e33-fce2c42805ec')
     PROBE3_TEMPERATURE = btle.UUID('06ef0006-2e06-4b79-9e33-fce2c42805ec')
-    PROBE3_THRESHOLD   = btle.UUID('06ef0007-2e06-4b79-9e33-fce2c42805ec')
+    PROBE3_THRESHOLD = btle.UUID('06ef0007-2e06-4b79-9e33-fce2c42805ec')
     PROBE4_TEMPERATURE = btle.UUID('06ef0008-2e06-4b79-9e33-fce2c42805ec')
-    PROBE4_THRESHOLD   = btle.UUID('06ef0009-2e06-4b79-9e33-fce2c42805ec')
+    PROBE4_THRESHOLD = btle.UUID('06ef0009-2e06-4b79-9e33-fce2c42805ec')
 
 
 class IDevicePeripheral(btle.Peripheral):
@@ -66,7 +67,8 @@ class IDevicePeripheral(btle.Peripheral):
             temp_char_name = "PROBE{}_TEMPERATURE".format(probe_num)
             temp_char = self.characteristic(getattr(UUIDS, temp_char_name))
             self.temp_chars[probe_num] = temp_char
-            logging.debug("Added probe with index {0}, name {1}, and UUID {2}".format(probe_num, temp_char_name, temp_char))
+            logging.debug(
+                "Added probe with index {0}, name {1}, and UUID {2}".format(probe_num, temp_char_name, temp_char))
 
     def characteristic(self, uuid):
         """
@@ -152,6 +154,25 @@ class IGrillV3Peripheral(IDevicePeripheral):
         IDevicePeripheral.__init__(self, address, name, num_probes)
 
 
+class MyIgrill(IGrillV2Peripheral):
+    def __init__(self, *args, **kwargs):
+        self.address = args[0]
+        super(MyIgrill, self).__init__(*args, **kwargs)
+
+    def read_temperature(self, *args, **kwargs):
+        try:
+            return super(myIgrill, self).read_temperature(*args, **kwargs)
+        except bluepy.btle.BTLEDisconnectError:
+            while True:
+                try:
+                    print("Disconnected from iGrill, trying to reconnect...")
+                    device = self.__init__(self.address)
+                    return super(myIgrill, self).read_temperature(*args, **kwargs)
+                except bluepy.btle.BTLEDisconnectError:
+                    print("Failed to reconnect -- trying again...")
+                    continue
+
+
 class DeviceThread(threading.Thread):
     device_types = {'igrill_mini': IGrillMiniPeripheral,
                     'igrill_v2': IGrillV2Peripheral,
@@ -171,14 +192,18 @@ class DeviceThread(threading.Thread):
     def run(self):
         while self.run_event.is_set():
             try:
-                logging.debug("Device thread {} (re)started, trying to connect to iGrill with address: {}".format(self.name, self.address))
+                logging.debug(
+                    "Device thread {} (re)started, trying to connect to iGrill with address: {}".format(self.name,
+                                                                                                        self.address))
                 device = self.device_types[self.type](self.address, self.name)
                 self.mqtt_client.reconnect()
                 while True:
                     temperature = device.read_temperature()
                     battery = device.read_battery()
                     utils.publish(temperature, battery, self.mqtt_client, self.topic, device.name)
-                    logging.debug("Published temp: {} and battery: {} to topic {}/{}".format(temperature, battery, self.topic, device.name))
+                    logging.debug(
+                        "Published temp: {} and battery: {} to topic {}/{}".format(temperature, battery, self.topic,
+                                                                                   device.name))
                     logging.debug("Sleeping for {} seconds".format(self.interval))
                     time.sleep(self.interval)
             except Exception as e:
