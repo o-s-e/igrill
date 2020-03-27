@@ -42,33 +42,39 @@ class Config(object):
         for required_key, required_type in required_entries.items():
             if required_key in config_dict:
                 if not isinstance(config_dict[required_key], required_type):
-                    logging.error("Config validation failed: Value of \'{0}\' must be {1}, was {2}".format(required_key, required_type,
-                                                                                                           type(config_dict[
-                                                                                                                    required_key])))
+                    logging.error("Config validation failed: Value of \'{0}\' must be {1}, was {2}".format(required_key,
+                                                                                                           required_type,
+                                                                                                           type(
+                                                                                                               config_dict[
+                                                                                                                   required_key])))
                     valid = False
             else:
-                logging.error("Config validation failed: Missing required field \'{0}\' in \'{1}\'".format(required_key, key))
+                logging.error(
+                    "Config validation failed: Missing required field \'{0}\' in \'{1}\'".format(required_key, key))
                 valid = False
 
         for optional_key, optional_type in optional_entries.items():
             if optional_key in config_dict and not isinstance(config_dict[optional_key], optional_type):
                 logging.error(
-                    "Config validation failed: Value of optional entry \'{0}\' must be {1}, was {2}".format(optional_key, optional_type,
-                                                                                                            type(config_dict[
-                                                                                                                     optional_key])))
+                    "Config validation failed: Value of optional entry \'{0}\' must be {1}, was {2}".format(
+                        optional_key, optional_type,
+                        type(config_dict[
+                                 optional_key])))
                 valid = False
 
         if 'children' in config_requirements:
             for child_key, child_value in config_requirements['children'].items():
                 if valid and child_key in config_dict:
-                    valid = self.validator[type(config_dict[child_key])](self, child_key, config_dict[child_key], child_value)
+                    valid = self.validator[type(config_dict[child_key])](self, child_key, config_dict[child_key],
+                                                                         child_value)
         return valid
 
     def validate_list(self, key, value_list, specs):
         logging.debug("Validating list {0} with specs: {1}".format(value_list, specs))
         valid = True
         if 'minimum' in specs and len(value_list) < specs['minimum']:
-            logging.error("Config validation failed: \'{0}\' needs to have at least {1} entries".format(key, specs['minimum']))
+            logging.error(
+                "Config validation failed: \'{0}\' needs to have at least {1} entries".format(key, specs['minimum']))
             valid = False
 
         for value in value_list:
