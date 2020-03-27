@@ -108,7 +108,7 @@ def publish(temperatures, battery, client, base_topic, device_name):
             client.publish("{0}".format(base_topic),
                            "{0},probe={1} temperature={2} {3}".format(device_name, i, temperatures[i], time.time_ns()))
     client.publish("{0}".format(base_topic),
-                   "{0},battery charge={2} {3}".format(device_name, battery, time.time_ns()))
+                   "{0},battery charge={1} {2}".format(device_name, battery, time.time_ns()))
 
 
 def get_devices(device_config):
