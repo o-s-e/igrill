@@ -5,6 +5,7 @@ import logging
 import time
 import paho.mqtt.client as mqtt
 
+
 config_requirements = {
     'specs': {
         'required_entries': {'devices': list, 'mqtt': dict},
