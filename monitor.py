@@ -4,7 +4,7 @@ import argparse
 import logging
 import threading
 import time
-
+import sys
 from config import Config
 from utils import log_setup, mqtt_init, get_device_threads, config_requirements, config_defaults
 
@@ -32,7 +32,7 @@ def main():
 
     if not config.isvalid():
         raise ValueError("Config found in directory {0} is not valid".format(options.config_directory))
-
+    logging.debug('Python version: {0}'.format(sys.version))
     run_event = threading.Event()
     run_event.set()
     # Get device threads
