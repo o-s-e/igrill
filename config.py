@@ -25,8 +25,8 @@ class Config(object):
 
     def __init__(self, config_path, requirements, defaults):
         self.config = read_config(config_path, defaults)
-        self.requiremnets = requirements
-        self.valid = self.validator[type(self.config)](self, 'Base', self.config, self.requiremnets)
+        self.requirements = requirements
+        self.valid = self.validator[type(self.config)](self, 'Base', self.config, self.requirements)
 
     def parse_config(self, config, requirements):
         return

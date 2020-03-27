@@ -32,6 +32,7 @@ def main():
 
     if not config.isvalid():
         raise ValueError("Config found in directory {0} is not valid".format(options.config_directory))
+    logging.info('HAAALLLLLO')
     logging.debug('Python version: {0}'.format(sys.version))
     run_event = threading.Event()
     run_event.set()
