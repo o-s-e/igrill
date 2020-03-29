@@ -101,6 +101,7 @@ def mqtt_init(mqtt_config):
 def publish(temperatures, battery, client, base_topic, device_name):
     for i in range(1, 5):
         if temperatures[i]:
+            logging.debug('Temp list: {0}'.format(temperatures))
             """
             client.publish("{0}/{1}/probe{2}".format(base_topic, device_name, i), temperatures[i])
             """
