@@ -79,11 +79,7 @@ class IDevicePeripheral(btle.Peripheral):
                 return c
 
     def authenticate(self):
-        """
-        Performs iDevices challenge/response handshake. Returns if handshake succeeded
-        Works for all devices using this handshake, no key required
-        (copied from https://github.com/kins-dev/igrill-smoker, thanks for the tip!)
-        """
+
         logging.debug("Authenticating...")
 
         # send app challenge (16 bytes) (must be wrapped in a bytearray)
@@ -91,18 +87,7 @@ class IDevicePeripheral(btle.Peripheral):
         logging.debug("Sending key of all 0's")
         self.characteristic(UUIDS.APP_CHALLENGE).write(challenge, True)
 
-        """
-        Normally we'd have to perform some crypto operations:
-            Write a challenge (in this case 16 bytes of 0)
-            Read the value
-            Decrypt w/ the key
-            Check the first 8 bytes match our challenge
-            Set the first 8 bytes 0
-            Encrypt with the key
-            Send back the new value
-        But wait!  Our first 8 bytes are already 0.  That means we don't need the key.
-        We just hand back the same encrypted value we get and we're good.
-        """
+
         encrypted_device_challenge = self.characteristic(UUIDS.DEVICE_CHALLENGE).read()
         self.characteristic(UUIDS.DEVICE_RESPONSE).write(encrypted_device_challenge, True)
 
